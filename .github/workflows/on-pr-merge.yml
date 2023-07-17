@@ -1,0 +1,12 @@
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  print_merge_commit_sha:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Print merge commit SHA
+        run: echo "The merge commit SHA is ${{ github.sha }}"
