@@ -1,12 +1,54 @@
+# jobs:
+#   print_merge_commit_sha:
+#     runs-on: ubuntu-latest
+#     if: github.event.pull_request.merged == true
+#     steps:
+#       - name: Print merge commit SHA
+#         run: echo "The merge commit SHA is ${{ github.sha }}"
+
 on:
   pull_request:
     types:
       - closed
+    branches:
+      - main
 
 jobs:
-  print_merge_commit_sha:
-    runs-on: ubuntu-latest
+  build-image:
     if: github.event.pull_request.merged == true
     steps:
       - name: Print merge commit SHA
-        run: echo "The merge commit SHA is ${{ github.sha }}"
+        run: echo "Merged, The merge commit SHA is ${{ github.sha }}"
+
+  test-unit:
+    if: "!contains(github.event.pull_request.labels.*.name, 'tests-skip')"
+    steps:
+      - name: Print merge commit SHA
+        run: echo "unit test"
+
+  test-cypress:
+    if: "!contains(github.event.pull_request.labels.*.name, 'tests-skip')"
+    needs:
+      - build-image
+    steps:
+      -  run: echo "cypress"
+
+  publish-image:
+    needs:
+      - build-image
+      - test-unit
+      - test-cypress
+    if: |
+      always() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled') &&
+    steps:
+      - run: echo "publish-image"
+
+  staging-deploy:
+    name: Deploy to staging
+    needs:
+      - build-image
+      - publish-image
+    steps:
+      - run: echo "staging-deploy"
