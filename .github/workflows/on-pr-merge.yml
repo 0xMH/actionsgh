@@ -55,5 +55,9 @@ jobs:
     needs:
       - build-image
       - publish-image
+    if: |
+      always() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
     steps:
       - run: echo "staging-deploy"
